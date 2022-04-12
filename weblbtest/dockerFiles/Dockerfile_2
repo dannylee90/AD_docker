@@ -1,0 +1,17 @@
+# sysntax=docker/dockerfile:1
+
+FROM golang:1.17-alpine as builder
+
+RUN mkdir -p /build
+WORKDIR /build
+
+ADD go.mod /build
+ADD fileCreator.go /build
+
+RUN CGO_ENABLED=0 go build -o fileCreator -ldflags="-w -s" ./fileCreator.go
+
+FROM httpd:2.4
+
+COPY --from=builder /build/fileCreator /fileCreator
+
+ENTRYPOINT ["/fileCreator"]
